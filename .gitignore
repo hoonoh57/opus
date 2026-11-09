@@ -1,1 +1,16 @@
 
+# 비밀정보 (절대 커밋 금지)
+.env
+.env.*
+!.env.example
+
+# 실행 산출물
+node_modules/
+dist/
+lab-data/
+*.sqlite
+*.log
+
+# TLA+ 모델 검사 산출물
+states/
+*.tlacov
