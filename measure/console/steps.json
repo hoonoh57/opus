@@ -1,7 +1,8 @@
 {
   "version": 1,
   "sections": [
-    { "id": "measure", "title": "실측 (docs/05)" }
+    { "id": "measure", "title": "실측 (docs/05)" },
+    { "id": "lab", "title": "전략 실험실 (docs/07)" }
   ],
   "steps": [
     { "id": "M01", "section": "measure", "script": "src/m01.ts", "envs": ["mock", "real"], "rule": "",
@@ -23,6 +24,10 @@
     { "id": "M04", "section": "measure", "script": "src/m04.ts", "envs": ["mock"], "rule": "afterHours",
       "title": "조회 유량 계단 시험",
       "guide": "모의 계좌에서 초당 1회부터 30초마다 1회씩 올리고, 첫 거절(1700)에서 멈춥니다. 5~6분 걸립니다. 평일 15:40 이후나 주말에만 실행됩니다.",
-      "why": "03 입장 게이트의 유량 한도. 한도가 TR별인지 계정 전체인지, 거절 뒤에도 세션이 유지되는지" }
+      "why": "03 입장 게이트의 유량 한도. 한도가 TR별인지 계정 전체인지, 거절 뒤에도 세션이 유지되는지" },
+    { "id": "L01", "section": "lab", "script": "src/l01.ts", "envs": [], "rule": "",
+      "title": "포착 종목 리스트 연결 확인",
+      "guide": "성과검증 앱에서 조건식 포착 결과(일자, 시각, 종목코드가 들어 있는 CSV 또는 탭 구분 텍스트)를 내보내 E:\\opus-git\\measure\\lab-data\\inbox 폴더에 넣고 실행합니다. 여러 날짜면 여러 파일도 됩니다. 키움에 접속하지 않습니다. 실패해도 파일 머리글과 앞 3줄이 기록되어 AI가 형식을 맞춥니다.",
+      "why": "07 1장: 모든 분석 사례의 유일한 입력" }
   ]
 }

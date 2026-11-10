@@ -19,6 +19,8 @@
 | `start.cmd`, `stop.cmd` | 실험 콘솔 시작·종료 (사용자가 알아야 할 유일한 실행 방법) | 작성됨 |
 | `measure/console/` | 실험 콘솔 (로컬 웹 UI, 127.0.0.1:3020). `steps.json`이 사용자 할 일의 유일한 출처 | 작성됨 |
 | `measure/results/ledger.jsonl` | 실험 결과 공유 장부 (콘솔이 실행마다 자동 커밋, AI가 읽음) | 누적 |
+| `docs/07_STRATEGY_LAB.md` | 전략 실험실 v1: 당일·기간·구간 분석, 체결·비용 모델, 수익률 KPI와 버전업 규칙, 개선과제 축적 | 작성됨 |
+| `lab/` | 전략 버전, 사례, 실행 기록, 개선과제, 결정 (커밋 대상) | 예정 (L03부터) |
 | `docs/06_OBSERVE_REPLAY.md` | 관측·재생 v1: 제어면 기록, 재현성 규칙 RP1~RP5, 로그 규칙 LG1~LG7, 실행 시점 검사, 진단 요약, 가짜 브로커 재생 | 작성됨 |
 | `spec/Order.tla` | 주문 상태기계 TLA+ 명세 | 예정 |
 | `spec/Order.cfg` | TLC 실행 설정 | 예정 |
