@@ -13,7 +13,7 @@
 | `docs/01_ORDER_FSM.md` | 주문 상태기계 v2.1 | 결함 수정 완료, TLC 검증 전 |
 | `docs/02_SESSION_TOKEN_FSM.md` | 세션·토큰 상태기계 v1.1 | 결함 수정 완료, TLC 검증 전 |
 | `docs/03_SUBSCRIPTION_MODE_FSM.md` | 구독·입장 게이트·모드 상태기계 v1 (모드 합성 규칙의 유일한 출처) | 작성됨, TLC 검증 전 |
-| `docs/04_ENVIRONMENT_PREMORTEM.md` | 환경 모델, 사전 부검표 | 예정 |
+| `docs/04_ENVIRONMENT_PREMORTEM.md` | 환경 모델 EV01~EV23, 사전 부검표 PM01~PM19, 추가 수용 시나리오 V01~V05 | 작성됨 (PM10 로그 상한은 06 대기) |
 | `docs/05_CONFIG_MEASURE.md` | 설정값 실측 계획 | 예정 |
 | `docs/06_OBSERVE_REPLAY.md` | 관측 자료 형식과 사고 재현용 재생 장치 | 예정 |
 | `spec/Order.tla` | 주문 상태기계 TLA+ 명세 | 예정 |
