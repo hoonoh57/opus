@@ -66,7 +66,7 @@ function go(id, env, key) {
 }
 function shareRetry() { fetch('/api/share', { method: 'POST', headers: H, body: '{}' }).then(load); }
 function setTab(t) { tab = t; sig = ''; draw(); }
-function top() {
+function drawTop() {
   var tabs = [['next', '진행']].concat(S.steps.sections.map(function (s) { return [s.id, s.title]; })).concat([['log', '기록'], ['help', '도움말']]);
   document.getElementById('tabs').innerHTML = tabs.map(function (t) {
     return '<button class="' + (t[0] === tab ? 'on' : '') + '" onclick="setTab(\'' + t[0] + '\')">' + esc(t[1]) + '</button>';
@@ -101,7 +101,7 @@ function body() {
   document.getElementById('main').innerHTML = m;
 }
 function draw() {
-  top();
+  drawTop();
   var s = JSON.stringify([tab, S.ledger.length, !!S.run, S.blocked, S.steps.steps.length]);
   if (s !== sig) { sig = s; body(); }
 }
