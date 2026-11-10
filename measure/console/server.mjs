@@ -41,10 +41,11 @@ function git(args) {
 }
 
 function shareLedger(msg) {
+  const paths = [LEDGER_REL, 'lab/captures'].filter((p) => existsSync(join(REPO, p)));
   try {
-    if (git(['status', '--porcelain', '--', LEDGER_REL])) {
-      git(['add', '--', LEDGER_REL]);
-      git(['commit', '-q', '-m', msg, '--', LEDGER_REL]);
+    if (paths.length && git(['status', '--porcelain', '--', ...paths])) {
+      git(['add', '--', ...paths]);
+      git(['commit', '-q', '-m', msg, '--', ...paths]);
     }
     git(['push', '-q']);
     share = { ok: true, msg: git(['rev-parse', '--short', 'HEAD']) };
@@ -121,6 +122,7 @@ function startRun(b) {
 // capture input tab: user pastes, the app owns location and file names
 const INBOX = join(MEASURE, 'lab-data', 'inbox');
 const INBOX_BAK = join(MEASURE, 'lab-data', 'inbox-bak');
+const CAPS = join(REPO, 'lab', 'captures');
 const CAP_COLS = [
   ['date', '일자', ['일자', '날짜', '포착일', '포착일자', 'date']],
   ['time', '시각', ['시각', '시간', '포착시각', '포착시간', 'time']],
@@ -200,10 +202,14 @@ function capSave(b) {
     const name = 'capture_' + d + '.csv';
     const p = join(INBOX, name);
     if (existsSync(p)) { mkdirSync(INBOX_BAK, { recursive: true }); copyFileSync(p, join(INBOX_BAK, stamp + '_' + name)); }
-    writeFileSync(p, '\uFEFF' + capCsv(r.rows.filter((x) => x.date === d)), 'utf8');
+    const body = '\uFEFF' + capCsv(r.rows.filter((x) => x.date === d));
+    writeFileSync(p, body, 'utf8');
+    mkdirSync(CAPS, { recursive: true });
+    writeFileSync(join(CAPS, name), body, 'utf8');
     files.push(name);
   }
-  return { errs: [], warns: r.warns, n: r.n, dates: r.dates, files, preview: r.preview };
+  shareLedger('lab: capture ' + r.dates.join(' '));
+  return { errs: [], warns: r.warns, n: r.n, dates: r.dates, files, preview: r.preview, share };
 }
 function capLoad(b) {
   const f = String(b.file || '');

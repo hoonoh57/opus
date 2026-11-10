@@ -87,7 +87,7 @@ function capShow(j, okText) {
   if (j.err) h += '<pre class="fail">' + capEsc(j.err) + '</pre>';
   if (j.errs && j.errs.length) h += '<pre class="fail">고칠 줄 ' + j.errs.length + '개 (저장되지 않았습니다)\n' + capEsc(j.errs.slice(0, 30).join('\n')) + '</pre>';
   if (j.warns && j.warns.length) h += '<pre class="block">' + capEsc(j.warns.slice(0, 30).join('\n')) + '</pre>';
-  if (!bad) h += '<pre class="ok">' + capEsc(okText + ': ' + j.n + '행, 일자 ' + (j.dates || []).join(' ') + (j.files ? '\n저장: ' + j.files.join(' ') : '') + '\n\n' + (j.preview || '')) + '</pre>';
+  if (!bad) h += '<pre class="ok">' + capEsc(okText + ': ' + j.n + '행, 일자 ' + (j.dates || []).join(' ') + (j.files ? '\n저장: ' + j.files.join(' ') : '') + (j.share ? '\nGitHub: ' + (j.share.ok ? '커밋 ' + j.share.msg : '실패 ' + j.share.msg + ' (위쪽 다시 공유 버튼)') : '') + '\n\n' + (j.preview || '')) + '</pre>';
   capMsg = h;
   var el = document.getElementById('capMsg');
   if (el) el.innerHTML = h;
