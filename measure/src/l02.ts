@@ -127,7 +127,7 @@ main('L02', async () => {
       bars[code] = b;
       nb += b.length;
       writeFileSync(join(out, code + '_1m.csv'), 'time,open,high,low,close,qty\n' + b.map((x) => [x.t, x.o, x.h, x.l, x.c, x.v].join(',')).join('\n') + '\n');
-      const k = await paged(rec, env, tok.token, 'ka10079', { stk_cd: code, tic_scope: '1', upd_stkpc_tp: '1' }, 'stk_tic_chart_qry', cap.date, 150, first);
+      const k = await paged(rec, env, tok.token, 'ka10079', { stk_cd: code, tic_scope: '1', upd_stkpc_tp: '1' }, 'stk_tic_chart_qry', cap.date, 400, first);
       const t = k.rows.map((x) => [String(x.cntr_tm).slice(8, 14), num(x.cur_prc), num(x.trde_qty)].join(','));
       if (!t.length) throw new Error('ka10079 no rows for ' + code + ' on ' + cap.date + ' (see shape in ledger details)');
       tickN[code] = t.length;
