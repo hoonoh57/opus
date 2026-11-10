@@ -1,0 +1,19 @@
+{
+  "name": "opus-measure",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "opus docs/05 measurement tool (MT1-MT8). Not the kernel.",
+  "scripts": {
+    "m01": "tsx src/m01.ts",
+    "m03": "tsx src/m03.ts",
+    "m04": "tsx src/m04.ts",
+    "m12": "tsx src/m12.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
