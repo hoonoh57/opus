@@ -54,7 +54,7 @@
 3. (완료 2026-11-10) `docs/04_ENVIRONMENT_PREMORTEM.md` v1. 다음은 4번 또는 6번 (06이 있어야 PM10 완료).
 4. `spec/Order.tla`, `spec/Order.cfg`: 주문 상태기계 TLA+ 명세와 TLC 실행 설정.
 5. `docs/05_CONFIG_MEASURE.md`: 키움 유량 한도, 응답·체결 순서, 토큰 수명 실측 계획.
-6. `docs/06_OBSERVE_REPLAY.md`: 저널·로그 형식, 내보내기 방법, 저널을 가짜 브로커로 재생해 사고를 재현하는 장치.
+6. (완료 2026-11-10) `docs/06_OBSERVE_REPLAY.md` v1. 남은 설계: 4번 TLA+ 명세(TLC 실행 환경 필요), 5번 실측 계획.
 
 ## 7. 코딩 착수 관문
 
@@ -77,3 +77,4 @@
 - 2026-11-10: 03 SUBSCRIPTION MODE FSM v1 등록 (게이트 G1~G10, 구독 SB1, 모드 합성 규칙, S01~S15)
 - 2026-11-10: design-first 스킬 재작성 (점검표 A~L, 설계 결함 장부 D01~D19). 잘못 들어간 원인은 repo-sync E15
 - 2026-11-10: 04 ENVIRONMENT PREMORTEM v1. 부검 중 커밋된 문서 결함 4건 발견·수정 (D20 03 G11, D21 02 단일 인스턴스·T6, D22 01 O7, D23 03 저널 모드). 점검표 F 보강, M 신설
+- 2026-11-10: 06 OBSERVE REPLAY v1 (제어면·데이터면 분리, 재현성 RP1~RP5, 로그 LG1~LG7, 실행 시점 검사, 진단 요약 40줄, 재현·교란·전략 재생). 04 PM10 완료. 점검표 N 신설
