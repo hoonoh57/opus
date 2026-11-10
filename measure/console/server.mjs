@@ -129,6 +129,7 @@ const CAP_COLS = [
   ['code', '종목코드', ['종목코드', '코드', '단축코드', 'code']],
   ['name', '종목명', ['종목명', 'name']],
   ['price', '포착가', ['포착가', '현재가', '종가', '가격', 'price']],
+  ['mfe', 'MFE', ['mfe', 'mfe(%)', '고mfe', '최대수익률']],
   ['cond', '조건식', ['조건식', '조건명', 'condition']],
 ];
 function capSplit(l) {
@@ -175,17 +176,19 @@ function capParse(text, cond) {
     if (!/^[0-9A-Z]{6}$/.test(code)) { errs.push(at + '종목코드 "' + g('code') + '" (6자리)'); continue; }
     const pr = g('price').replace(/[,\s+-]/g, '');
     if (pr && !/^\d+$/.test(pr)) { errs.push(at + '포착가 "' + g('price') + '" (숫자만)'); continue; }
+    const mf = g('mfe').replace(/[%\s,+]/g, '');
+    if (mf && !/^-?\d+(\.\d+)?$/.test(mf)) { errs.push(at + 'MFE "' + g('mfe') + '" (숫자, 예: 12.16)'); continue; }
     const key = date + t + code;
     if (seen.has(key)) { warns.push(at + '중복 제외 ' + code); continue; }
     seen.add(key);
     const clean = (s) => String(s).replace(/[,"\t]/g, ' ').trim();
-    rows.push({ date, time: t.slice(0, 2) + ':' + t.slice(2), code, name: clean(g('name')), price: pr, cond: clean(g('cond') || cond || '') });
+    rows.push({ date, time: t.slice(0, 2) + ':' + t.slice(2), code, name: clean(g('name')), price: pr, mfe: mf, cond: clean(g('cond') || cond || '') });
   }
   if (!rows.length && !errs.length) errs.push('데이터 줄이 없습니다');
   return { errs, warns, rows };
 }
 function capCsv(rows) {
-  return '일자,시각,종목코드,종목명,포착가,조건식\n' + rows.map((r) => [r.date, r.time, r.code, r.name, r.price, r.cond].join(',')).join('\n') + '\n';
+  return '일자,시각,종목코드,종목명,포착가,MFE,조건식\n' + rows.map((r) => [r.date, r.time, r.code, r.name, r.price, r.mfe || '', r.cond].join(',')).join('\n') + '\n';
 }
 function capCheck(b) {
   const p = capParse(b.text, b.cond);

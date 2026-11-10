@@ -28,7 +28,7 @@ td,th{border:1px solid #333;padding:4px;vertical-align:top;text-align:left}
 <main id="main"></main>
 <script>
 var S = null, tab = 'next', sig = '';
-var CAP_HEAD = '일자,시각,종목코드,종목명,포착가,조건식\n', capText = CAP_HEAD, capCond = '', capMsg = '';
+var CAP_HEAD = '일자,시각,종목코드,종목명,포착가,MFE,조건식\n', capText = CAP_HEAD, capCond = '', capMsg = '';
 var H = { 'Content-Type': 'application/json', 'X-Opus': '1' };
 function dec(s) { return String(s == null ? '' : s).replace(/\\u([0-9a-fA-F]{4})/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); }); }
 function esc(s) { return dec(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
