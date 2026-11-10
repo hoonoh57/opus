@@ -1,0 +1,31 @@
+{
+  "id": "B0",
+  "version": 1,
+  "name": "기준전략_V1",
+  "status": "frozen",
+  "parent": null,
+  "created": "2026-11-10",
+  "reason": "사용자 운영 기본값 고정 (2026-11-10). 해석 가정: 2% 미만에 손실 포함, 재진입 허용, momentum = close / ref(close, period) * 100",
+  "candle": { "type": "tick", "n": 120, "choices": [60, 120] },
+  "params": {
+    "st_period": { "value": 14, "min": 7, "max": 30, "step": 1 },
+    "st_mult": { "value": 2, "min": 1, "max": 4, "step": 0.25 },
+    "jma_len": { "value": 10, "min": 5, "max": 30, "step": 1 },
+    "jma_phase": { "value": 50, "min": -100, "max": 100, "step": 10 },
+    "jma_power": { "value": 2, "min": 1, "max": 3, "step": 1 },
+    "mom_period": { "value": 80, "min": 20, "max": 160, "step": 10 },
+    "mom_th": { "value": 100, "min": 95, "max": 110, "step": 0.5 },
+    "hold_net_pct": { "value": 2, "min": 0, "max": 5, "step": 0.5 }
+  },
+  "indicators": {
+    "st": { "fn": "supertrend", "args": ["st_period", "st_mult"] },
+    "jma": { "fn": "jma", "args": ["jma_len", "jma_phase", "jma_power"] },
+    "mom": { "fn": "momentum", "args": ["mom_period"] }
+  },
+  "entry": "st.dir == 1 and turnUp(jma) and mom >= mom_th",
+  "exits": [
+    { "id": "X1", "label": "Supertrend 하락", "when": "st.dir == -1" },
+    { "id": "X2", "label": "JMA 하락 (ST 상승 중 순수익 2% 미만이면 보류)", "when": "turnDown(jma) and not (st.dir == 1 and netPct < hold_net_pct)" }
+  ],
+  "reentry": true
+}

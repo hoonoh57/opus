@@ -1,0 +1,6 @@
+{
+  "champion": "B0/v1",
+  "since": "2026-11-10",
+  "decision": null,
+  "note": "기준전략_V1. 교체는 구간 분석 VU 판정과 decisions.jsonl로만 (07 SV3)"
+}
