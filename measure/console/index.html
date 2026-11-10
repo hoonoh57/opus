@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>opus lab</title>
+<style>
+body{font-family:'Malgun Gothic',sans-serif;margin:0;background:#111;color:#ddd}
+header{display:flex;gap:4px;padding:8px;background:#1b1b1b;border-bottom:1px solid #333}
+header button{background:#222;color:#ccc;border:1px solid #444;padding:6px 14px;cursor:pointer}
+header button.on{background:#2d5a88;color:#fff}
+#clock{margin-left:auto;padding:6px;color:#888}
+#bar{padding:6px 12px;background:#1a2330;font-size:13px}
+main{padding:12px;max-width:1100px}
+.card{border:1px solid #333;border-radius:6px;padding:10px;margin-bottom:10px;background:#181818}
+.card.next{border-color:#3a8ee6}
+.st{font-size:12px;padding:2px 6px;border-radius:4px;margin-left:6px}
+.ok{background:#1f5f2f}.fail{background:#7a2020}.wait{background:#555}.block{background:#6a5a10}
+.guide{color:#bbb;font-size:13px;margin:6px 0}
+pre{white-space:pre-wrap;word-break:break-all;background:#0b0b0b;padding:6px;font-size:12px;margin:6px 0}
+button{cursor:pointer}
+table{border-collapse:collapse;width:100%;font-size:12px}
+td,th{border:1px solid #333;padding:4px;vertical-align:top;text-align:left}
+</style>
+</head>
+<body>
+<header id="tabs"></header>
+<div id="bar"></div>
+<main id="main"></main>
+<script>
+var S = null, tab = 'next', sig = '';
+var H = { 'Content-Type': 'application/json', 'X-Opus': '1' };
+function dec(s) { return String(s == null ? '' : s).replace(/\\u([0-9a-fA-F]{4})/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); }); }
+function esc(s) { return dec(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function units(sec) {
+  var u = [];
+  S.steps.steps.forEach(function (st) {
+    if (sec && st.section !== sec) return;
+    if (st.envs.length) st.envs.forEach(function (e) { u.push({ st: st, env: e }); });
+    else u.push({ st: st, env: '' });
+  });
+  return u;
+}
+function done(u) { return S.ledger.some(function (e) { return e.step === u.st.id && e.env === u.env && e.ok; }); }
+function last(u) { for (var i = S.ledger.length - 1; i >= 0; i--) { var e = S.ledger[i]; if (e.step === u.st.id && e.env === u.env) return e; } return null; }
+function card(u, isNext) {
+  var st = u.st, env = u.env, l = last(u), ok = done(u), blk = S.blocked[st.id] || '', key = st.id + '_' + (env || 'x');
+  var h = '<div class="card' + (isNext ? ' next' : '') + '"><b>' + esc(st.id) + (env ? ' [' + esc(env) + ']' : '') + '</b> ' + esc(st.title);
+  h += ok ? '<span class="st ok">완료</span>' : (l ? '<span class="st fail">실패</span>' : '<span class="st wait">대기</span>');
+  if (blk) h += '<span class="st block">' + esc(blk) + '</span>';
+  h += '<div class="guide">' + esc(st.guide) + '</div>';
+  if (st.why) h += '<div class="guide">목적: ' + esc(st.why) + '</div>';
+  if (env) {
+    h += '<label><input type="checkbox" id="ack_' + key + '"> 같은 앱키를 쓰는 프로그램(kiwoom-desk 등)을 종료했습니다</label><br>';
+    if (env === 'real') h += '<label><input type="checkbox" id="cf_' + key + '"> 실전 계좌로 실행합니다 (주문 없음)</label><br>';
+  }
+  h += '<button ' + ((S.run || blk) ? 'disabled' : '') + ' onclick="go(\'' + st.id + '\',\'' + env + '\',\'' + key + '\')">' + (ok ? '다시 실행' : '실행') + '</button>';
+  if (l) h += '<pre>' + esc(l.kst || l.at) + '  ' + esc(l.line) + '</pre>';
+  return h + '</div>';
+}
+function go(id, env, key) {
+  var a = document.getElementById('ack_' + key), c = document.getElementById('cf_' + key);
+  var body = { id: id, env: env, ack: a ? a.checked : true, confirm: c ? c.checked : false };
+  fetch('/api/run', { method: 'POST', headers: H, body: JSON.stringify(body) })
+    .then(function (r) { return r.json(); })
+    .then(function (j) { if (j.err) alert(j.err); load(); });
+}
+function shareRetry() { fetch('/api/share', { method: 'POST', headers: H, body: '{}' }).then(load); }
+function setTab(t) { tab = t; sig = ''; draw(); }
+function top() {
+  var tabs = [['next', '진행']].concat(S.steps.sections.map(function (s) { return [s.id, s.title]; })).concat([['log', '기록'], ['help', '도움말']]);
+  document.getElementById('tabs').innerHTML = tabs.map(function (t) {
+    return '<button class="' + (t[0] === tab ? 'on' : '') + '" onclick="setTab(\'' + t[0] + '\')">' + esc(t[1]) + '</button>';
+  }).join('') + '<span id="clock">KST ' + S.now + '</span>';
+  var b = S.run ? '실행 중: ' + esc(S.run.id) + ' ' + esc(S.run.env) + ' (' + S.run.sec + '초) | ' : '';
+  b += S.share.ok ? '결과 공유 정상 ' + esc(S.share.msg) : '결과 공유 실패: ' + esc(S.share.msg) + ' <button onclick="shareRetry()">다시 공유</button>';
+  document.getElementById('bar').innerHTML = b;
+}
+function body() {
+  var m = '';
+  if (tab === 'next') {
+    var us = units('').filter(function (u) { return !done(u); });
+    m = us.length ? us.map(function (u, i) { return card(u, i === 0); }).join('')
+      : '<div class="card">등록된 할 일을 모두 마쳤습니다. 다음 할 일은 AI가 steps.json에 등록합니다.</div>';
+  } else if (tab === 'log') {
+    m = '<table><tr><th>시각(KST)</th><th>단계</th><th>결과</th><th>상세</th></tr>';
+    S.ledger.slice().reverse().forEach(function (e) {
+      var d = (e.details || []).map(function (x) { return esc(JSON.stringify(x)); }).join('\n');
+      m += '<tr><td>' + esc(e.kst || e.at) + '</td><td>' + esc(e.step) + ' ' + esc(e.env) + '</td><td>' + esc(e.line) + '</td><td><pre>' + d + '</pre></td></tr>';
+    });
+    m += '</table>';
+  } else if (tab === 'help') {
+    m = '<div class="card"><b>사용법</b><div class="guide">' +
+      'start.cmd: 콘솔을 시작하고 브라우저를 엽니다. stop.cmd: 콘솔을 종료합니다.<br>' +
+      '진행 탭에는 아직 끝나지 않은 일이 순서대로 나옵니다. 파란 테두리가 지금 할 일입니다.<br>' +
+      '실행 결과는 measure/results/ledger.jsonl에 기록되고 자동으로 커밋되어, AI가 다음 세션에서도 읽습니다. 결과를 채팅에 붙일 필요가 없습니다.<br>' +
+      '위쪽 막대에 "결과 공유 실패"가 보이면 다시 공유 버튼을 누르고, 그래도 실패하면 그 한 줄만 AI에게 전달합니다.<br>' +
+      '할 일 목록과 안내문은 measure/console/steps.json에서 옵니다. AI가 새 단계를 등록하면 새로고침 뒤 나타납니다.</div></div>';
+  } else {
+    m = units(tab).map(function (u) { return card(u, false); }).join('');
+  }
+  document.getElementById('main').innerHTML = m;
+}
+function draw() {
+  top();
+  var s = JSON.stringify([tab, S.ledger.length, !!S.run, S.blocked, S.steps.steps.length]);
+  if (s !== sig) { sig = s; body(); }
+}
+function load() {
+  fetch('/api/state').then(function (r) { return r.json(); }).then(function (j) { S = j; draw(); })
+    .catch(function () { document.getElementById('bar').innerHTML = '콘솔 서버에 연결할 수 없습니다. start.cmd를 실행하세요.'; });
+}
+load();
+setInterval(load, 2000);
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "sections": [
+    { "id": "measure", "title": "실측 (docs/05)" }
+  ],
+  "steps": [
+    { "id": "M01", "section": "measure", "script": "src/m01.ts", "envs": ["mock", "real"], "rule": "",
+      "title": "토큰 수명과 재발급 동작",
+      "guide": "토큰을 발급한 뒤 폐기 없이 다시 발급해, 같은 토큰이 오는지와 옛 토큰이 계속 쓰이는지 확인합니다. 주문 없음, 조회 2~3건.",
+      "why": "02 토큰 상태기계의 최악 가정(재발급 시 기존 토큰 무효) 확인" },
+    { "id": "M03", "section": "measure", "script": "src/m03.ts", "envs": ["mock"], "rule": "",
+      "title": "토큰 폐기(au10002) 직후 조회",
+      "guide": "토큰을 폐기하고 2초 뒤 옛 토큰으로 조회합니다. 모의 계좌만.",
+      "why": "토큰 무효 응답의 형태 확인" },
+    { "id": "M12", "section": "measure", "script": "src/m12.ts", "envs": [], "rule": "",
+      "title": "디스크 fsync 지연",
+      "guide": "로컬 디스크에 1000번 기록하고 동기화해 지연을 잽니다. 키움에 접속하지 않습니다.",
+      "why": "01 J2(전송 전 저널 기록)의 비용" },
+    { "id": "M13", "section": "measure", "script": "src/m13.ts", "envs": ["mock", "real"], "rule": "",
+      "title": "폐기 후 재발급",
+      "guide": "폐기 후 재발급했을 때 새 토큰이 오는지, 만료가 연장되는지, 폐기가 몇 초 뒤 반영되는지 확인합니다. 약 1분 걸립니다. 주문 없음.",
+      "why": "02 T5(장 시작 전 폐기 후 재발급) 설계 근거" },
+    { "id": "M04", "section": "measure", "script": "src/m04.ts", "envs": ["mock"], "rule": "afterHours",
+      "title": "조회 유량 계단 시험",
+      "guide": "모의 계좌에서 초당 1회부터 30초마다 1회씩 올리고, 첫 거절(1700)에서 멈춥니다. 5~6분 걸립니다. 평일 15:40 이후나 주말에만 실행됩니다.",
+      "why": "03 입장 게이트의 유량 한도. 한도가 TR별인지 계정 전체인지, 거절 뒤에도 세션이 유지되는지" }
+  ]
+}

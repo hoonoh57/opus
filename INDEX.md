@@ -15,7 +15,10 @@
 | `docs/03_SUBSCRIPTION_MODE_FSM.md` | 구독·입장 게이트·모드 상태기계 v1 (모드 합성 규칙의 유일한 출처) | 작성됨, TLC 검증 전 |
 | `docs/04_ENVIRONMENT_PREMORTEM.md` | 환경 모델 EV01~EV23, 사전 부검표 PM01~PM19, 추가 수용 시나리오 V01~V05 | 작성됨 |
 | `docs/05_CONFIG_MEASURE.md` | 설정값 유일 목록(출처 등급 W/D/M/P), 측정 도구 안전 규칙 MT1~MT8, 실험 M01~M12 | 작성됨, 실측 전 |
-| `measure/` | 측정 도구 (TypeScript/Node, 커널 아님). M01, M03, M04, M12 구현 | 작성됨, 실행 전 |
+| `measure/` | 측정 도구 (TypeScript/Node, 커널 아님). M01, M03, M04, M12, M13 구현 | M01·M03·M12·M13 실측 완료, M04 대기 |
+| `start.cmd`, `stop.cmd` | 실험 콘솔 시작·종료 (사용자가 알아야 할 유일한 실행 방법) | 작성됨 |
+| `measure/console/` | 실험 콘솔 (로컬 웹 UI, 127.0.0.1:3020). `steps.json`이 사용자 할 일의 유일한 출처 | 작성됨 |
+| `measure/results/ledger.jsonl` | 실험 결과 공유 장부 (콘솔이 실행마다 자동 커밋, AI가 읽음) | 누적 |
 | `docs/06_OBSERVE_REPLAY.md` | 관측·재생 v1: 제어면 기록, 재현성 규칙 RP1~RP5, 로그 규칙 LG1~LG7, 실행 시점 검사, 진단 요약, 가짜 브로커 재생 | 작성됨 |
 | `spec/Order.tla` | 주문 상태기계 TLA+ 명세 | 예정 |
 | `spec/Order.cfg` | TLC 실행 설정 | 예정 |
