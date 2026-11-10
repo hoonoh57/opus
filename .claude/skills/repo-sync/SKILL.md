@@ -109,4 +109,5 @@ Invoke-OpusSafe -Repo 'E:\opus-git' -Commit 'English message' -Edits $E -Canary 
 | 2026-11-09 | E13 clone 실패 | 대상 폴더에 기존 `projects` 폴더 존재 | 새 폴더 `E:\opus-git`, 안내 전 `Test-Path` 확인 | 해결 |
 | 2026-11-09 | E14 붙여넣기 후 `>>`에서 멈춤 | AI가 스크립트 안에 백틱 3개 코드펜스를 넣어 채팅 복사가 중간에 끊김(4장에 이미 적힌 함정을 AI가 어김) | 문서 속 코드 블록은 `~~~`, 3-1 규칙 9·10 | 해결 |
 | 2026-11-09 | 시험: `.gitattributes` OK (2c2a709 -> 344cbc9), 모듈 등록 OK (344cbc9 -> 494e820) | - | - | 검증됨 |
+| 2026-11-10 | E15 design-first/SKILL.md에 repo-sync v1 내용이 들어 있음 (2026-11-10 발견) | 구조 개편 때 비슷한 교체본 여러 개를 웹 편집기로 한꺼번에 붙여넣음 | 새 파일·전체 교체는 opus-safe `$Files`(경로와 내용이 한 덩어리)로 반영 | 해결 |
 

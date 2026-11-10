@@ -75,4 +75,4 @@
 - 2026-11-10: 01 ORDER FSM v2.1 (R 고아 매칭, 늦은 취소 거부, J5, T16 정정, T19~T22)
 - 2026-11-10: 02 SESSION TOKEN FSM v1.1 (C 상태 토큰 대기 4-1, 실패 카운터 n_t·n_s 분리)
 - 2026-11-10: 03 SUBSCRIPTION MODE FSM v1 등록 (게이트 G1~G10, 구독 SB1, 모드 합성 규칙, S01~S15)
-- 2026-11-10: 발견: .claude/skills/design-first/SKILL.md에 repo-sync v1 내용이 잘못 들어 있음. 재작성 예정
+- 2026-11-10: design-first 스킬 재작성 (점검표 A~L, 설계 결함 장부 D01~D19). 잘못 들어간 원인은 repo-sync E15
