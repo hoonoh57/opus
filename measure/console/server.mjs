@@ -1,7 +1,7 @@
 // opus lab console. Local only (127.0.0.1). Not the kernel.
 // Runs only scripts registered in steps.json, appends results to results/ledger.jsonl and commits that file.
 import http from 'node:http';
-import { readFileSync, writeFileSync, appendFileSync, existsSync, readdirSync, statSync, mkdirSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, appendFileSync, existsSync, readdirSync, statSync, mkdirSync, unlinkSync, copyFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, execFileSync } from 'node:child_process';
@@ -118,12 +118,118 @@ function startRun(b) {
   return '';
 }
 
+// capture input tab: user pastes, the app owns location and file names
+const INBOX = join(MEASURE, 'lab-data', 'inbox');
+const INBOX_BAK = join(MEASURE, 'lab-data', 'inbox-bak');
+const CAP_COLS = [
+  ['date', '일자', ['일자', '날짜', '포착일', '포착일자', 'date']],
+  ['time', '시각', ['시각', '시간', '포착시각', '포착시간', 'time']],
+  ['code', '종목코드', ['종목코드', '코드', '단축코드', 'code']],
+  ['name', '종목명', ['종목명', 'name']],
+  ['price', '포착가', ['포착가', '현재가', '종가', '가격', 'price']],
+  ['cond', '조건식', ['조건식', '조건명', 'condition']],
+];
+function capSplit(l) {
+  if (l.includes('\t')) return l.split('\t').map((x) => x.trim().replace(/^"|"$/g, ''));
+  const out = []; let cur = ''; let q = false;
+  for (const ch of l) {
+    if (ch === '"') q = !q;
+    else if (ch === ',' && !q) { out.push(cur.trim()); cur = ''; }
+    else cur += ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
+function capParse(text, cond) {
+  const lines = String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter((l) => l.trim());
+  const errs = []; const warns = []; const rows = []; const seen = new Set();
+  if (!lines.length) return { errs: ['입력이 비어 있습니다'], warns, rows };
+  let col = {}; let start = 0;
+  const head = capSplit(lines[0]).map((h) => h.toLowerCase());
+  for (const [k, , names] of CAP_COLS) {
+    const i = head.findIndex((h) => names.some((x) => x.toLowerCase() === h));
+    if (i >= 0) col[k] = i;
+  }
+  if (col.date !== undefined || col.code !== undefined) {
+    start = 1;
+    for (const k of ['date', 'time', 'code']) if (col[k] === undefined) errs.push('머리글에 ' + CAP_COLS.find((c) => c[0] === k)[1] + ' 열이 없습니다');
+    if (errs.length) return { errs, warns, rows };
+  } else {
+    col = { date: 0, time: 1, code: 2, name: 3, price: 4, cond: 5 };
+    warns.push('머리글이 없어 일자, 시각, 종목코드, 종목명, 포착가, 조건식 순서로 읽었습니다');
+  }
+  for (let i = start; i < lines.length; i++) {
+    const c = capSplit(lines[i]); const at = (i + 1) + '번째 줄: ';
+    const g = (k) => (col[k] === undefined ? '' : (c[col[k]] || '').trim());
+    const date = g('date').replace(/[^0-9]/g, '');
+    if (!/^20\d{6}$/.test(date)) { errs.push(at + '일자 "' + g('date') + '" (예: 20261110)'); continue; }
+    let t = g('time').replace(/[^0-9]/g, '');
+    if (t.length === 3 || t.length === 5) t = '0' + t;
+    t = t.slice(0, 4);
+    const hm = Number(t);
+    if (t.length !== 4 || hm < 800 || hm > 2000 || hm % 100 > 59) { errs.push(at + '시각 "' + g('time') + '" (예: 09:05)'); continue; }
+    let code = g('code').toUpperCase().replace(/\s/g, '').replace(/^A(?=[0-9A-Z]{6}$)/, '');
+    if (/^\d{1,5}$/.test(code)) { warns.push(at + '종목코드 ' + code + ' -> ' + code.padStart(6, '0') + ' (앞자리 0 복원)'); code = code.padStart(6, '0'); }
+    if (!/^[0-9A-Z]{6}$/.test(code)) { errs.push(at + '종목코드 "' + g('code') + '" (6자리)'); continue; }
+    const pr = g('price').replace(/[,\s+-]/g, '');
+    if (pr && !/^\d+$/.test(pr)) { errs.push(at + '포착가 "' + g('price') + '" (숫자만)'); continue; }
+    const key = date + t + code;
+    if (seen.has(key)) { warns.push(at + '중복 제외 ' + code); continue; }
+    seen.add(key);
+    const clean = (s) => String(s).replace(/[,"\t]/g, ' ').trim();
+    rows.push({ date, time: t.slice(0, 2) + ':' + t.slice(2), code, name: clean(g('name')), price: pr, cond: clean(g('cond') || cond || '') });
+  }
+  if (!rows.length && !errs.length) errs.push('데이터 줄이 없습니다');
+  return { errs, warns, rows };
+}
+function capCsv(rows) {
+  return '일자,시각,종목코드,종목명,포착가,조건식\n' + rows.map((r) => [r.date, r.time, r.code, r.name, r.price, r.cond].join(',')).join('\n') + '\n';
+}
+function capCheck(b) {
+  const p = capParse(b.text, b.cond);
+  const dates = [...new Set(p.rows.map((r) => r.date))].sort();
+  return { errs: p.errs, warns: p.warns, n: p.rows.length, dates, rows: p.rows, preview: capCsv(p.rows.slice(0, 5)) };
+}
+function capSave(b) {
+  const r = capCheck(b);
+  if (r.errs.length) return { errs: r.errs, warns: r.warns, n: r.n, dates: r.dates };
+  mkdirSync(INBOX, { recursive: true });
+  const files = [];
+  const stamp = kstNow().toISOString().slice(0, 19).replace(/[-:T]/g, '');
+  for (const d of r.dates) {
+    const name = 'capture_' + d + '.csv';
+    const p = join(INBOX, name);
+    if (existsSync(p)) { mkdirSync(INBOX_BAK, { recursive: true }); copyFileSync(p, join(INBOX_BAK, stamp + '_' + name)); }
+    writeFileSync(p, '\uFEFF' + capCsv(r.rows.filter((x) => x.date === d)), 'utf8');
+    files.push(name);
+  }
+  return { errs: [], warns: r.warns, n: r.n, dates: r.dates, files, preview: r.preview };
+}
+function capLoad(b) {
+  const f = String(b.file || '');
+  if (!/^[^\\/:*?"<>|]+\.(csv|tsv|txt)$/i.test(f) || f.includes('..')) return { err: '허용되지 않은 파일 이름' };
+  const p = join(INBOX, f);
+  if (!existsSync(p)) return { err: '파일이 없습니다: ' + f };
+  const buf = readFileSync(p);
+  let s = new TextDecoder('utf-8').decode(buf);
+  if (s.includes('\uFFFD')) s = new TextDecoder('euc-kr').decode(buf);
+  return { text: s.replace(/^\uFEFF/, '') };
+}
+function inboxList() {
+  if (!existsSync(INBOX)) return [];
+  return readdirSync(INBOX).filter((f) => /\.(csv|tsv|txt)$/i.test(f)).map((f) => {
+    const p = join(INBOX, f); let n = 0;
+    try { n = readFileSync(p, 'utf8').split(/\r?\n/).filter((l) => l.trim()).length - 1; } catch { /* unreadable */ }
+    return { f, n, t: new Date(statSync(p).mtimeMs + 9 * 3600000).toISOString().slice(0, 16).replace('T', ' ') };
+  }).sort((a, b) => (a.f < b.f ? 1 : -1));
+}
+
 function state() {
   const st = steps();
   const blocked = {};
   for (const s of st.steps) blocked[s.id] = blockedNow(s.rule);
   return {
-    steps: st, ledger: ledger().slice(-300), share, blocked,
+    steps: st, ledger: ledger().slice(-300), share, blocked, inbox: inboxList(),
     run: run ? { id: run.id, env: run.env, sec: Math.round((Date.now() - run.started) / 1000) } : null,
     now: kstNow().toISOString().slice(11, 19),
   };
@@ -142,12 +248,16 @@ const server = http.createServer((req, res) => {
     if (req.method !== 'POST') return send(404, { err: 'not found' });
     if (req.headers['x-opus'] !== '1') return send(403, { err: 'forbidden' });
     let raw = '';
-    req.on('data', (c) => { raw += c; if (raw.length > 10000) req.destroy(); });
+    req.on('data', (c) => { raw += c; if (raw.length > 3000000) req.destroy(); });
     req.on('end', () => {
       let b = {};
       try { b = raw ? JSON.parse(raw) : {}; } catch { return send(400, { err: 'bad json' }); }
       if (req.url === '/api/run') { const e = startRun(b); return send(200, e ? { err: e } : { ok: true }); }
       if (req.url === '/api/share') { shareLedger('lab: share retry'); return send(200, share); }
+      const cap = (fn) => { try { const r = fn(b); delete r.rows; return send(200, r); } catch (e) { return send(200, { err: String((e && e.message) || e) }); } };
+      if (req.url === '/api/capture/check') return cap(capCheck);
+      if (req.url === '/api/capture/save') return cap(capSave);
+      if (req.url === '/api/capture/load') return cap(capLoad);
       if (req.url === '/api/stop') { send(200, { ok: true }); setTimeout(() => process.exit(0), 200); return; }
       send(404, { err: 'not found' });
     });

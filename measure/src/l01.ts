@@ -27,6 +27,7 @@ main('L01', async () => {
     let rows = 0;
     const dates = new Set<string>();
     const miss = new Set<string>();
+    const badCode: string[] = [];
     for (const f of files) {
       const lines = decode(readFileSync(join(inbox, f))).split(/\r?\n/).filter((l) => l.trim());
       if (lines.length < 2) { miss.add(f + ':empty'); continue; }
@@ -40,6 +41,12 @@ main('L01', async () => {
       rec.w('file', { file: f, sep: sep === '\t' ? 'tab' : 'comma', head, mapped: col, sample: lines.slice(1, 4) });
       for (const k of ['date', 'time', 'code']) if (col[k] === undefined) miss.add(k);
       rows += lines.length - 1;
+      if (col.code !== undefined) {
+        for (const l of lines.slice(1)) {
+          const c = (l.split(sep)[col.code] || '').trim().replace(/^"|"$/g, '');
+          if (!/^[0-9A-Z]{6}$/.test(c)) badCode.push(f + ':' + c);
+        }
+      }
       if (col.date !== undefined) {
         for (const l of lines.slice(1)) {
           const d = (l.split(sep)[col.date] || '').replace(/[^0-9]/g, '');
@@ -48,6 +55,7 @@ main('L01', async () => {
       }
     }
     if (miss.size) throw new Error('columns not recognized: ' + [...miss].join(',') + ' (header and 3 rows saved in ledger details)');
+    if (badCode.length) throw new Error('code not 6 chars x' + badCode.length + ' e.g. ' + badCode.slice(0, 3).join(' ') + ' (leading zero lost?)');
     const ds = [...dates].sort();
     return 'L01 OK files=' + files.length + ' rows=' + rows + ' dates=' + ds.length + ' first=' + (ds[0] || '-') + ' last=' + (ds[ds.length - 1] || '-');
   } finally {
