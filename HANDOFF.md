@@ -74,3 +74,5 @@
 - 2026-11-09: opus-safe 모듈(tools/opus-safe.ps1) 채택, PowerShell 5.1 한글 부분 수정 검증
 - 2026-11-10: 01 ORDER FSM v2.1 (R 고아 매칭, 늦은 취소 거부, J5, T16 정정, T19~T22)
 - 2026-11-10: 02 SESSION TOKEN FSM v1.1 (C 상태 토큰 대기 4-1, 실패 카운터 n_t·n_s 분리)
+- 2026-11-10: 03 SUBSCRIPTION MODE FSM v1 등록 (게이트 G1~G10, 구독 SB1, 모드 합성 규칙, S01~S15)
+- 2026-11-10: 발견: .claude/skills/design-first/SKILL.md에 repo-sync v1 내용이 잘못 들어 있음. 재작성 예정
