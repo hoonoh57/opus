@@ -44,12 +44,12 @@
 ## 5. 시스템 설계 현황
 
 - 설계 방식: "불변식 + 완전 전이표 + TLA+ 모델 검사". 절차는 `design-first` 스킬.
-- 작성됨(TLC 검증 전): `docs/00_LAWS.md`(층 분리, 불변식 12개), `docs/01_ORDER_FSM.md` v2, `docs/02_SESSION_TOKEN_FSM.md`.
+- 작성됨(TLC 검증 전): `docs/00_LAWS.md`(층 분리, 불변식 12개), `docs/01_ORDER_FSM.md` v2.1, `docs/02_SESSION_TOKEN_FSM.md` v1.1 (결함 수정 반영).
 - 작업 규칙 체계: 공개 표준(AGENTS.md, CLAUDE.md, SKILL.md) 형식으로 정리됨.
 
 ## 6. 다음 할 일
 
-1. 01·02 문서의 미반영 결함 수정(전체 교체본, 한 세션에 한 파일): 01의 R 상태 고아 매칭, 취소 재전송 시 A 행, J5와 J2 충돌, T16 정정과 T19 추가 / 02의 C 상태 토큰 준비 통지, 실패 카운터 `n_t`·`N_t` 분리.
+1. (완료 2026-11-10) 01·02 결함 수정. 8장 참고. 다음은 2번.
 2. `docs/03_SUBSCRIPTION_MODE_FSM.md`: 구독(참조수, 중복 요청 병합)과 유량 게이트, 모드 상태기계 완전 전이표.
 3. `docs/04_ENVIRONMENT_PREMORTEM.md`: 환경 모델(적대적 행동)과 사전 부검표.
 4. `spec/Order.tla`, `spec/Order.cfg`: 주문 상태기계 TLA+ 명세와 TLC 실행 설정.
@@ -71,3 +71,6 @@
 - 2026-11-09: 02 SESSION TOKEN FSM 등록
 - 2026-11-09: 작업 철학 확정(설계에 사고 집중, 코딩은 기계적 이행, 가동 후 실물 기반 진단)
 - 2026-11-09: 공개 표준 구조로 개편. 규칙은 AGENTS.md, 절차는 .claude/skills, 상태는 HANDOFF.md. SKILLS.md 삭제(repo-sync 스킬로 이전)
+- 2026-11-09: opus-safe 모듈(tools/opus-safe.ps1) 채택, PowerShell 5.1 한글 부분 수정 검증
+- 2026-11-10: 01 ORDER FSM v2.1 (R 고아 매칭, 늦은 취소 거부, J5, T16 정정, T19~T22)
+- 2026-11-10: 02 SESSION TOKEN FSM v1.1 (C 상태 토큰 대기 4-1, 실패 카운터 n_t·n_s 분리)
