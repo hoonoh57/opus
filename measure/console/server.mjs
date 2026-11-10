@@ -41,7 +41,7 @@ function git(args) {
 }
 
 function shareLedger(msg) {
-  const paths = [LEDGER_REL, 'lab/captures'].filter((p) => existsSync(join(REPO, p)));
+  const paths = [LEDGER_REL, 'lab/captures', 'lab/runs'].filter((p) => existsSync(join(REPO, p)));
   try {
     if (paths.length && git(['status', '--porcelain', '--', ...paths])) {
       git(['add', '--', ...paths]);
@@ -233,6 +233,26 @@ function inboxList() {
   }).sort((a, b) => (a.f < b.f ? 1 : -1));
 }
 
+// day chart (07 3 mode D): files written by L04 into lab-data/chart (local, regenerated from ticks)
+const CHART = join(MEASURE, 'lab-data', 'chart');
+function chartList() {
+  if (!existsSync(CHART)) return { items: [] };
+  const items = [];
+  for (const d of readdirSync(CHART).filter((x) => /^\d{8}$/.test(x)).sort().reverse()) {
+    const p = join(CHART, d, 'index.json');
+    if (!existsSync(p)) continue;
+    try { for (const it of JSON.parse(readFileSync(p, 'utf8')).items || []) items.push(it); } catch { /* skip */ }
+  }
+  return { items };
+}
+function chartGet(b) {
+  const d = String(b.date || ''), c = String(b.code || '');
+  if (!/^\d{8}$/.test(d) || !/^[0-9A-Z]{6}$/.test(c)) return { err: '잘못된 일자 또는 종목코드' };
+  const p = join(CHART, d, c + '.json');
+  if (!existsSync(p)) return { err: '차트 파일이 없습니다. 진행 탭에서 L04를 실행하세요' };
+  return JSON.parse(readFileSync(p, 'utf8'));
+}
+
 function state() {
   const st = steps();
   const blocked = {};
@@ -267,6 +287,8 @@ const server = http.createServer((req, res) => {
       if (req.url === '/api/capture/check') return cap(capCheck);
       if (req.url === '/api/capture/save') return cap(capSave);
       if (req.url === '/api/capture/load') return cap(capLoad);
+      if (req.url === '/api/chart/list') return cap(chartList);
+      if (req.url === '/api/chart/get') return cap(chartGet);
       if (req.url === '/api/stop') { send(200, { ok: true }); setTimeout(() => process.exit(0), 200); return; }
       send(404, { err: 'not found' });
     });

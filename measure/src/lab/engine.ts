@@ -55,7 +55,7 @@ export const kstMin = (t: number): number => Math.floor((((Math.floor(t) + 9 * 3
 const hm = (s: string): number => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
 const r4 = (x: number): number => Math.round(x * 10000) / 10000;
 
-export interface RunOpts { feePct?: number; taxPct?: number; slipTicks?: number; tx?: string; capture?: { index: number; price: number }; prevClose?: number; }
+export interface RunOpts { feePct?: number; taxPct?: number; slipTicks?: number; tx?: string; capture?: { index: number; price: number }; prevClose?: number; entryFrom?: number; }
 export interface Trade {
   sigIn: number; inIdx: number; inTime: number; inPx: number;
   sigOut: number; outIdx: number; outTime: number; outPx: number;
@@ -131,7 +131,7 @@ export function run(c: Compiled, bars: readonly Bar[], o: RunOpts = {}) {
           break;
         }
       }
-    } else if ((c.def.reentry || !traded) && i < bars.length - 1 && kstMin(b.time) < tx && truthy(evalAt(c.entry, i, ctx))) {
+    } else if ((c.def.reentry || !traded) && i >= (o.entryFrom ?? 0) && i < bars.length - 1 && kstMin(b.time) < tx && truthy(evalAt(c.entry, i, ctx))) {
       pending = { kind: 'BUY', sig: i, reason: 'entry' };
     }
   }
